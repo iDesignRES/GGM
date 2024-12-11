@@ -48,7 +48,6 @@ MGET includes several configurable features, specifically in connection with iDe
 - Centralized decision-making for a European-wide cost-minimizing TSO.
 - Implicit assumptions include linear optimization, scalability of network expansions, and neglect of quadratic effects from elastic demand to preserve MILP formulation.
 
-## Repository
+## Further information
 
-- [Model Hub Repository](https://www.ntnu.edu/iot/energy/energy-models-hub/ggm)
-- GitHub repository: To be announced
+- https://www.ntnu.edu/iot/energy/energy-models-hub/ggm
