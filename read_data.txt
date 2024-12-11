@@ -1,0 +1,31 @@
+*-----------------------------------------------------
+*	SETS
+*-----------------------------------------------------
+set= N      Rng= Nodes      rdim=1
+dset=Nuts2  Rng= Nuts2      rdim=1
+dset= CN    Rng= Countries  rdim=1
+dset= Rgn   Rng= Regions    rdim=1
+set= A      Rng= Arcs       rdim=1
+dset= F     Rng= Fuels      rdim=1
+dset= Z     Rng= DeviationTypes      rdim=1
+
+*------------------------------------------------------
+*	PARAMETERS
+*------------------------------------------------------
+par= dat_o  rng= OtherData       rdim=3
+par= dat_n  rng= NodesData	     rdim=4  cdim=1
+par= dat_c  rng= DemandData      rdim=2  cdim=1
+par= dat_p  rng= ProductionData  rdim=3  cdim=1
+par= dat_a  rng= ArcData         rdim=4  cdim=1
+par= dat_r  rng= RegasData       rdim=3  cdim=1
+par= dat_w  rng= StorageData     rdim=2  cdim=1
+
+
+*dset=Nuts1  Rng= Nuts1      rdim=1
+
+
+**par= dat_k  rng= ArcCapacities   rdim=2  cdim=1
+**par= dat_x  rng= ArcExpansionData   rdim=3  cdim=1
+
+
+*par= dat_ao rng= ArcOpp          rdim=3  cdim=0

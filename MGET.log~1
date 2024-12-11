@@ -1,0 +1,55 @@
+
+--- Job MGET.gms Start 12/10/24 14:59:47 46.5.0 a671108d WEX-WEI x86 64bit/MS Windows
+--- Applying:
+    C:\GAMS\46\gmsprmNT.txt
+--- GAMS Parameters defined
+    Input E:\Dropbox\MGET\MGET_package\MGET.gms
+    PageSize 0
+    Action C
+    ScrDir E:\Dropbox\MGET\MGET_package\225a\
+    SysDir C:\GAMS\46\
+    LogOption 3
+    ErrMsg 1
+    ErrorLog 99
+    IDE 1
+    LstTitleLeftAligned 1
+Licensee: Small MUD - 5 User License                     S240604|0002AP-GEN
+          Norwegian University of Science and Technology             DC7530
+          C:\Users\rudolfge\OneDrive - NTNU\Documents\GAMS\gamslice.txt
+          License Admin: Ruud Egging, ruud.egging@ntnu.no                  
+          The maintenance period of the license will expire on Jul 29, 2025
+Processor information: 1 socket(s), 4 core(s), and 8 thread(s) available
+GAMS 46.5.0   Copyright (C) 1987-2024 GAMS Development. All rights reserved
+--- Starting compilation
+--- MGET.gms(20) 2 Mb
+--- . load_input_from_Excel.gms(6) 2 Mb
+--- call GDXXRW data/Spain.xlsx O=gdx/Spain SkipEmpty=0 @read_data.txt
+
+GDXXRW           46.5.0 a671108d May 8, 2024           WEI x86 64bit/MS Window
+Input file : E:\Dropbox\MGET\MGET_package\data\Spain.xlsx
+Output file: E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+Total time = 1984 Ms
+--- . load_input_from_Excel.gms(27) 3 Mb
+--- .. 2040.gms(5) 3 Mb
+--- . load_input_from_Excel.gms(62) 3 Mb
+--- GDXin=E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+--- GDX File ($gdxIn) E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+--- . load_input_from_Excel.gms(108) 3 Mb
+--- GDXin=E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+--- GDX File ($gdxIn) E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+--- . load_input_from_Excel.gms(165) 3 Mb
+--- .. scen_Spain_2040_4_2_sup.gms(11) 3 Mb
+--- . load_input_from_Excel.gms(182) 3 Mb
+--- .. scen_Spain_2040_4_2_dmd.gms(85) 3 Mb
+--- . load_input_from_Excel.gms(217) 3 Mb
+--- GDXin=E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+--- GDX File ($gdxIn) E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+--- . load_input_from_Excel.gms(342) 3 Mb
+--- GDXin=E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+--- GDX File ($gdxIn) E:\Dropbox\MGET\MGET_package\gdx\Spain.gdx
+--- . load_input_from_Excel.gms(436) 3 Mb
+--- MGET.gms(256) 3 Mb
+--- . report.gms(125) 3 Mb
+--- MGET.gms(275) 3 Mb
+*** Status: Normal completion
+--- Job MGET.gms Stop 12/10/24 14:59:49 elapsed 0:00:02.341
