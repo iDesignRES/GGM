@@ -48,6 +48,22 @@ MGET includes several configurable features, specifically in connection with iDe
 - Centralized decision-making for a European-wide cost-minimizing TSO.
 - Implicit assumptions include linear optimization, scalability of network expansions, and neglect of quadratic effects from elastic demand to preserve MILP formulation.
 
+## Installation & Getting Started
+
+This model is designed to be run **locally** using the GAMS software environment.  
+It is **not configured for online/cloud-based execution**.
+
+To install and run the model, please refer to the detailed guide provided in the `documents/` folder:
+
+ `documents/Installation_Guide_MGET.docx`
+
+The guide provides step-by-step instructions on how to:
+- Set up the environment
+- Load the correct case
+- Run the model
+- Understand input/output structure
+
+
 ## Further information
 
 - https://www.ntnu.edu/iot/energy/energy-models-hub/ggm
