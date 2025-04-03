@@ -1,4 +1,4 @@
-GAMS 46.5.0  a671108d May 8, 2024           WEX-WEI x86 64bit/MS Windows - 12/10/24 14:59:29 Page 1
+GAMS 45.7.0  64fbf3ce Jan 18, 2024          WEX-WEI x86 64bit/MS Windows - 04/02/25 11:58:34 Page 1
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
@@ -210,24 +210,44 @@ C o m p i l a t i o n
  120  rep_w(n,e,h,y,'Flow')=            Q_E.l(n,e,y,h)-Q_I.l(n,e,y,h);
  121  rep_w(n,e,h,y,'Vol')= scaleUp(h)*(Q_E.l(n,e,y,h)-Q_I.l(n,e,y,h));
  122   
- 123  execute_unload 'gdx/%string%_results',
- 124      rep_n,rep_k,rep_f,rep_ar, rep_c, rep_b, rep_w, rep_ff, rep_fn, rep_y
- 125  ;
+ 123  * Backup old result file if it exists
+ 124  * Make sure the folder exists
+ 125  ** Ensure GDX folder exists
+ 127   
+ 128  * Delete old backup if exists
+ 130   
+ 131  * Rename previous result to backup
+ 133   
+ 134  * Save new results
+ 135  execute_unload 'gdx/%string%_results',
+ 136      rep_n, rep_k, rep_f, rep_ar, rep_c, rep_b, rep_w, rep_ff, rep_fn, rep_y;
+ 137   
 
 **** 65 ERROR(S)   0 WARNING(S)
+GAMS 45.7.0  64fbf3ce Jan 18, 2024          WEX-WEI x86 64bit/MS Windows - 04/02/25 11:58:34 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
 
 
-COMPILATION TIME     =        0.016 SECONDS      3 MB  46.5.0 a671108d WEX-WEI
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Users\parinaza\OneDrive - NTNU\iDesign\GGM-main\GGM-review-v11\report.gms
+     2      126 CALL           1     126  if not exist "gdx" mkdir "gdx"  l(n,e,y,h)-Q_I.l(n,e,y,h)); ,y); (n,e,y,'TOT',aux_rep_c, 'disc'))+sum((n,y),rep_c(n,'TOT',y,'TOT','bidfx','disc')); ))* scaleUp(h); 
+     3      129 CALL           1     129  if exist "gdx/%string%_results_old.gdx" del "gdx/%string%_results_old.gdx" T',aux_rep_c, 'disc'))+sum((n,y),rep_c(n,'TOT',y,'TOT','bidfx','disc')); ))* scaleUp(h); 
+     4      132 CALL           1     132  if exist "gdx/%string%_results.gdx" ren "gdx/%string%_results.gdx" "%string%_results_old.gdx" '))+sum((n,y),rep_c(n,'TOT',y,'TOT','bidfx','disc')); ))* scaleUp(h); 
 
 
-USER: Small MUD - 5 User License                     S240604|0002AP-GEN
+COMPILATION TIME     =        0.078 SECONDS      3 MB  45.7.0 64fbf3ce WEX-WEI
+
+
+USER: Small MUD - 5 User License                     S230523|0002AP-GEN
       Norwegian University of Science and Technology             DC7530
       License for teaching and research at degree granting institutions
 
 
 **** FILE SUMMARY
 
-Input      E:\Dropbox\MGET\MGET_package\report.gms
-Output     E:\Dropbox\MGET\MGET_package\report.lst
+Input      C:\Users\parinaza\OneDrive - NTNU\iDesign\GGM-main\GGM-review-v11\report.gms
+Output     C:\Users\parinaza\OneDrive - NTNU\iDesign\GGM-main\GGM-review-v11\report.lst
 
 **** USER ERROR(S) ENCOUNTERED

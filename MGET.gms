@@ -1,22 +1,52 @@
+*=====================================================================*
+*  Gas Grid Model (GGM)                                              *
+*  ------------------------------------------------------------------*
+*  Purpose      : Expansion, repurposing, and operation of gas grid   *
+*  Platform      : GAMS 45.7.0       *                                     *
+*  Date          : 25.03.2025                                          *
+*  Inputs       : Excel files (converted via GDXXRW), GDX scenarios   *
+*  Outputs     : GDX results, cost breakdowns, infrastructure config *
+*  Docs        : See /documents folder for user guide & formulation  *
+*=====================================================================*
+
+*=====================================================================*
+* 0. General Compiler and Environment Settings                        *
+*=====================================================================*
+
 $onInline $OFFSYMXREF $Offuelxref $offinclude $offlisting
 *option   limrow= 0, limcol= 0, reslim= 300, solprint= off
 option   limrow= 30, limcol= 30, reslim= 300
 
-*------------------------------------------------------------------------------*
-*----      Scenario and case specification
-*------------------------------------------------------------------------------*
-*GDXXRW is NOT supported on MAC!!!!
-$SETGLOBAL KeepGdx    ''     /* '*' Do not refresh GDX input files, ''  Do refresh GDX input files. */
-$SETGLOBAL Verify     '*'     /* '*' Do not verify nodes and arcs sets, '' Do verify nodes and arcs sets, */
+*=====================================================================*
+* 1. Scenario and Case Specification                                  *
+*=====================================================================*
+* This section loads the case-specific configuration settings, 
+* including the scenario name, time horizon, operational settings, 
+* and paths to input data files.
+*
+* These global parameters are defined in the case_config file:
+*   - data       : case identifier (e.g., "Spain")
+*   - hor        : modeling horizon (e.g., 2040)
+*   - oper       : number of representative hours
+*   - scen       : scenario index
+*   - string     : scenario naming convention (used in filenames)
+*   - path       : file path to the scenario folder
+*   - excel_file : full path to the input Excel file
+*
+* The configuration is loaded using $include, and will be used 
+* throughout the model for consistent scenario management.
+*
+* Example:
+*   $setglobal data Spain
+*   $setglobal hor 2040
+*   $setglobal scen 0
+*   $setglobal string Spain_2040_4_0
+*   $setglobal excel_file "cases/Spain_case/input_data/Spain.xlsx"
+*
+*=====================================================================*
 
-$SETGLOBAL path       data              
-$SETGLOBAL data       Spain                 /* TEST,MGET,Spain,Blending */
-$SETGLOBAL hor        2040                  /* Last year in planning horizon: 2025, 2030, .., 2060 */
-$SETGLOBAL oper       4                     /* Operational hours */
-$SETGLOBAL scen       2                     /* Decarb & H2 uptake scenario 0 Moderate, 2 Ambitious */
-$SETGLOBAL string     %data%_%hor%_%oper%_%scen%   /* Case name string */
-
-*$INCLUDE load_input_%data%.gms
+$if not setglobal CASE_CONFIG $setglobal CASE_CONFIG "cases/spain_case/case_config.gms"
+$include %CASE_CONFIG%
 $INCLUDE load_input_from_Excel.gms
 
 *TEST SETTINGS
@@ -24,7 +54,9 @@ $INCLUDE load_input_from_Excel.gms
 *vola2(e)=1;
 *e_a(a,e)=0.8;
 *scaleUp(h)=1;
-
+*=====================================================================*
+* 2. Variable Declarations                                                                                                                               *
+*=====================================================================*
 *$onText
 Binary Variable
     B_BD(a,y)        Indicator for decision to make arc bidirectional
@@ -54,6 +86,9 @@ Positive Variable
 *   ZXA_FS(a,y)       Ensure feasibility arc expansion upper limit
     ZN2               NUTS2 level demand shortage  
 ;
+*=====================================================================*
+* 3. Equations                                                                                                                          *
+*=====================================================================*
 Equations
     obj             '(1) total costs'
     p_cap           '(2a) production potential'
@@ -91,6 +126,12 @@ Equations
 
 ;
 
+*=====================================================================*
+* 3.1. Equation Specifications                                          *
+*=====================================================================
+*---------------------------------------------------------------------------------------------------------------*
+*  Objective Function                                                                                                                                
+*---------------------------------------------------------------------------------------------------------------*
 obj..   TC =E=      sum((a,e,y),        r(y)*EOH(y)*c_ax(a,e,y)*    X_A(a,e,y))+
                     sum((a,e,f,y),      r(y)*EOH(y)*f_ar(a,e,f,y)*  B_AR(a,e,f,y))+
                     sum((a,e,f,y),      r(y)*EOH(y)*c_ar(a,e,f,y)*  K_RA(a,e,f,y))+
@@ -105,43 +146,33 @@ obj..   TC =E=      sum((a,e,y),        r(y)*EOH(y)*c_ax(a,e,y)*    X_A(a,e,y))+
                     sum((n,e,y,h),      r(y)*EOH(y)*c_lr(n,e)*      Q_R(n,e,y,h)     *scaleUp(h))+
                     sum((n,e,f,y,h),    r(y)*EOH(y)*c_bl(e,f)*      Q_B(n,e,f,y,h)   *scaleUp(h))
 ;
-
-Q_P.fx(n,e,y,h)$(cap_p(n,e,y,h)<=0)=0;
+*-----------------------------------------------------------------------------------------------------
+* Mass Balance, Supply and Demand Constraints
+*----------------------------------------------------------------------------------------------------------
 p_cap(n,e,y,h) $(cap_p(n,e,y,h)>0)..
 *    Q_P(n,e,y,h) + sum(f,Q_B(n,e,f,y,h))  =L= cap_p(n,e,y,h) + ZDS('ZPU',n,e,y,h)
 *   Q_P(n,e,y,h) + sum(f,Q_B(n,e,f,y,h)) =L= cap_p(n,e,y,h);
     Q_P(n,e,y,h) + sum(f,Q_B(n,e,f,y,h))  =L= cap_p(n,e,y,h)
 ;
-
-*ZDS.fx('ZPL',n,e,y,h)$(lb_p(n,e,y,h)<=0)=0;
 p_min(n,e,y,h)$       (lb_p(n,e,y,h)>0)..
 *    Q_P(n,e,y,h) + sum(f,Q_B(n,e,f,y,h)) =G= lb_p(n,e,y,h)  - ZDS('ZPL',n,e,y,h);
      Q_P(n,e,y,h) + sum(f,Q_B(n,e,f,y,h)) =G= lb_p(n,e,y,h);
 
-Q_S.fx(n,e,y,h)     $(not_h(e) AND dmd(n,e,y,h)<=0)=0;
-ZDS.fx('ZD2',n,e,y,h)$(not_h(e) AND dmd(n,e,y,h)<=0)=0;
 dmd_n3(n,e,y,h)     $(not_h(e) AND dmd(n,e,y,h)>0).. 
      Q_S(n,e,y,h) =E= dmd(n,e,y,h)   - ZDS('ZD2',n,e,y,h);
 
 dmd_n2(nuts2,e,y,h)$(is_h(e) AND dmd2(nuts2,e,y,h))..
     sum(n$n_in_2(n,nuts2),Q_S(n,e,y,h)) =E= dmd2(nuts2,e,y,h) - ZN2(nuts2,e,y,h)
-;    
-
-*Q_X.lo(n,e,y,h)=stor_x(n,e,y,h,'lo');
-*Q_X.up(n,e,y,h)=stor_x(n,e,y,h,'ub');
-*Q_I.lo(n,e,y,h)=stor_i(n,e,y,h,'lo');
-*Q_I.up(n,e,y,h)=stor_i(n,e,y,h,'ub');
-
+;
 mb(n,e,y,h)..
 *    Q_P(n,e,y,h) + sum(a$a_e(a,n),F_A(a,e,y,h)*e_a(a,e)) + Q_E(n,e,y,h) + ZDS('ZMS',n,e,y,h) + Q_R(n,e,y,h) + sum(f,Q_B(n,f,e,y,h)) =E=
     Q_P(n,e,y,h) + sum(a$a_e(a,n),F_A(a,e,y,h)*e_a(a,e)) + Q_E(n,e,y,h) + Q_R(n,e,y,h) + sum(f,Q_B(n,f,e,y,h)) =E=
     Q_S(n,e,y,h) + sum(a$a_s(a,n),F_A(a,e,y,h))          + Q_I(n,e,y,h) 
 *    Q_S(n,e,y,h) + sum(a$a_s(a,n),F_A(a,e,y,h))          + Q_I(n,e,y,h) + ZDS('ZMD',n,e,y,h)
 ;
-
-Q_B.fx(n,e,f,y,h)$(not_h(e) OR not_g(f))=0;
-Q_B.fx(n,e,f,y,h)$(cap_p(n,e,y,h)<=0)   =0;
-Q_B.fx(n,e,e,y,h)= 0;
+*-----------------------------------------------------------------------------------------------------
+* Blending Constraint
+*-----------------------------------------------------------------------------------------------------
 *max_bl(n,e,y,h)$(is_g(e) AND sum(f$is_h(f),cap_p(n,f,y,h))>0)..
 *max_bl(n,e,y,h)$is_g(e)..
 max_bl(n,f,e,y,h)$(is_h(f) AND is_g(e) AND cap_p(n,f,y,h)>0)..
@@ -149,35 +180,16 @@ max_bl(n,f,e,y,h)$(is_h(f) AND is_g(e) AND cap_p(n,f,y,h)>0)..
 *    sum(f,Q_B(n,f,e,y,h)) =L= ub_bl(e,f)*(Q_S(n,e,y,h) + sum(a$a_s(a,n),F_A(a,e,y,h)) + Q_I(n,e,y,h))
            Q_B(n,f,e,y,h)  =L= ub_bl(f,e)*(Q_S(n,e,y,h) + sum(a$a_s(a,n),F_A(a,e,y,h)) + Q_I(n,e,y,h))
 ;
-*Capacity limit is for gross flows and using capacity also in the other direction if made possible.
-a_lim(a,e,y,h)..
-*   F_A(a,e,y,h)*vola2(e) =L= K_A(a,e,y) + K_OPP(a,e,y) + ZXA_FS(a,y)
-    F_A(a,e,y,h)*vola2(e) =L= K_A(a,e,y) + K_OPP(a,e,y)
-;
-a_opp1(a,e,y)..
-    K_OPP(a,e,y) =L= BD(a,y)*bigM
-;
-a_opp2(a,e,y)..
-    K_OPP(a,e,y) =L= sum(ao$opp(ao,a),K_A(ao,e,y))
-;
+*-----------------------------------------------------------------------------------------------------
+* Storage Cycle Constraints
+*-----------------------------------------------------------------------------------------------------
+*Capacity can be repurposed so no conditional $cap_ww(n,e,y)
+w_lim(n,e,y)..      sum(h,scaleUp(h)*Q_E(n,e,y,h))*vols2(e) =L= K_W(n,e,y);
+w_cyc(n,e,y)..      sum(h,scaleUp(h)*Q_E(n,e,y,h))          =E= e_w(n,e)*sum(h,scaleUp(h)*Q_I(n,e,y,h));
 
-K_BD.fx(a,e,y)$is_bid(a) =0;
-bd_cost(a,e,y,y2)$(yscai(y2,y) AND NOT is_bid(a))..
-   K_BD(a,e,y)  =G= K_OPP(a,e,y2) - (1-B_BD(a,y))*bigM
-;
-
-BD.up(a,y)=1;
-*If already bidirectional, assign that
-BD.fx(a,y)$is_bid(a)=   1;
-*B_BD.fx(a,y)$(ORD(y)=1 AND is_bid(a))=is_bid(a);
-
-bidir(a,y)$(NOT is_bid(a))..
-    BD(a,y) =L=  B_BD(a ,y)+sum(y2$ypred(y2,y),BD(a ,y2)) 
-;
-
-*First period capacity is given by input data
-K_A.fx(a,e,y)$(ORD(y)=1) = cap_a (a,e,y);
-K_W.fx(n,e,y)$(ORD(y)=1) = cap_ww(n,e,y);
+*-----------------------------------------------------------------------------------------------------
+* Arc Capacity and Repurposing Constraints
+*-----------------------------------------------------------------------------------------------------
 *Capacity is all capacity (re)purposed to the current carrier and whatever is invested specific for the current carrier
 ar_cap(a,e,y)$(ord(y)>1)..      K_A(a,e,y) =E= sum(f, K_RA(a,f,e,y))+sum(y2$ypred(y2,y), X_A(a,e,y2));
 wr_cap(n,e,y)$(ord(y)>1)..      K_W(n,e,y) =E= sum(f, K_RW(n,f,e,y));
@@ -191,20 +203,6 @@ wr_cap(n,e,y)$(ord(y)>1)..      K_W(n,e,y) =E= sum(f, K_RW(n,f,e,y));
 sos_a(a,e,y)$(ord(y)>1)..         sum(f,B_AR(a,e,f,y)) =E= 1;
 sos_w(n,e,y)$(ord(y)>1)..         sum(f,B_WR(n,e,f,y)) =E= 1;
 
-*No repurposing in the first period
-B_AR.fx(a,e,e,y)$(ORD(y)=1)=0;
-K_RA.fx(a,e,f,y)$(ORD(y)=1)=0;
-B_WR.fx(n,e,e,y)$(ORD(y)=1)=0;
-K_RW.fx(n,e,f,y)$(ORD(y)=1)=0;
-
-*Can only make bidirectional if "Reversable?" - TO DO
-*Can only repurpose arc if "H2-ready" - TO DO
-*Can only repurpose storage if H2-ready 
-K_W.fx(n,'G',y)     $(dat_w(n,'G','H2-ready')<=0)=cap_ww(n,'G',y);
-*K_RW.fx(n,'G','G',y)$(dat_w(n,'G','H2-ready')<=0)=cap_ww(n,'G',y);
-
-*K_W.fx(n,'H',y)=cap_ww(n,'H',y);
-
 *Sum of repurposing capacities away from the specific carriers equals the previous period carrier capacity
 bil_a1(a,e,y)$(ord(y)>1)..     sum(f,K_RA(a,e,f,y)) =E= sum(y2$ypred(y2,y), K_A(a,e,y2));
 bil_w1(n,e,y)$(ORD(y)>1)..     sum(f,K_RW(n,e,f,y)) =E= sum(y2$ypred(y2,y), K_W(n,e,y2));
@@ -213,26 +211,93 @@ bil_w1(n,e,y)$(ORD(y)>1)..     sum(f,K_RW(n,e,f,y)) =E= sum(y2$ypred(y2,y), K_W(
 bil_a2(a,e,f,y)$(ord(y)>1)..    K_RA(a,e,f,y) =L= B_AR(a,e,f,y)*bigM;
 bil_w2(n,e,f,y)$(ord(y)>1)..    K_RW(n,e,f,y) =L= B_WR(n,e,f,y)*bigM;
 
+*-----------------------------------------------------------------------------------------------------
+* Arc Flow Direction Constraints
+*-----------------------------------------------------------------------------------------------------
+*Capacity limit is for gross flows and using capacity also in the other direction if made possible.
+a_lim(a,e,y,h)..
+*   F_A(a,e,y,h)*vola2(e) =L= K_A(a,e,y) + K_OPP(a,e,y) + ZXA_FS(a,y)
+    F_A(a,e,y,h)*vola2(e) =L= K_A(a,e,y) + K_OPP(a,e,y)
+;
+a_opp1(a,e,y)..
+    K_OPP(a,e,y) =L= BD(a,y)*bigM
+;
+a_opp2(a,e,y)..
+    K_OPP(a,e,y) =L= sum(ao$opp(ao,a),K_A(ao,e,y))
+;
+bd_cost(a,e,y,y2)$(yscai(y2,y) AND NOT is_bid(a))..
+   K_BD(a,e,y)  =G= K_OPP(a,e,y2) - (1-B_BD(a,y))*bigM
+;
+*=====================================================================*
+* 3.2 Variable Limitations and Constraints                             *
+*=====================================================================*
+*-----------------------------------------------------------------------------------------------------
+* Fix values when capacities are zero
+*-----------------------------------------------------------------------------------------------------
+Q_P.fx(n,e,y,h)$(cap_p(n,e,y,h)<=0)=0;
+Q_S.fx(n,e,y,h)     $(not_h(e) AND dmd(n,e,y,h)<=0)=0;
+ZDS.fx('ZD2',n,e,y,h)$(not_h(e) AND dmd(n,e,y,h)<=0)=0;
+*Q_X.lo(n,e,y,h)=stor_x(n,e,y,h,'lo');
+*Q_X.up(n,e,y,h)=stor_x(n,e,y,h,'ub');
+*Q_I.lo(n,e,y,h)=stor_i(n,e,y,h,'lo');
+*Q_I.up(n,e,y,h)=stor_i(n,e,y,h,'ub');
+Q_B.fx(n,e,f,y,h)$(not_h(e) OR not_g(f))=0;
+Q_B.fx(n,e,f,y,h)$(cap_p(n,e,y,h)<=0)   =0;
+Q_B.fx(n,e,e,y,h)= 0;
+*-----------------------------------------------------------------------------------------------------
+*First period capacity is given by input data
+*-----------------------------------------------------------------------------------------------------
+K_A.fx(a,e,y)$(ORD(y)=1) = cap_a (a,e,y);
+K_W.fx(n,e,y)$(ORD(y)=1) = cap_ww(n,e,y);
+*-----------------------------------------------------------------------------------------------------
+* Fix bidirectional arcs and related capacity if already bidirectional
+*-----------------------------------------------------------------------------------------------------
+K_BD.fx(a,e,y)$is_bid(a) =0;
+BD.up(a,y)=1;
+*If already bidirectional, assign that
+BD.fx(a,y)$is_bid(a)=   1;
+*B_BD.fx(a,y)$(ORD(y)=1 AND is_bid(a))=is_bid(a);
+
+bidir(a,y)$(NOT is_bid(a))..
+    BD(a,y) =L=  B_BD(a ,y)+sum(y2$ypred(y2,y),BD(a ,y2)) 
+;
+*-----------------------------------------------------------------------------------------------------
+*Regasifier capacity limit
+*-----------------------------------------------------------------------------------------------------
+Q_R.up(n,e,y,h)=dat_r(n,e,'2025','ub');
+*-----------------------------------------------------------------------------------------------------
+*Injection and extraction capacity limit; currently not adjustable. Vols2(e) adjusted in input data assignments
+*-----------------------------------------------------------------------------------------------------
+Q_I.up(n,e,y,h)=cap_wi(n,e,y);
+Q_E.up(n,e,y,h)=cap_we(n,e,y);
+
+*Q_I.fx(n,e,y,h)$(cap_ww(n,e,y)<=0)=0;
+*Q_E.fx(n,e,y,h)$(cap_ww(n,e,y)<=0)=0;
+*-----------------------------------------------------------------------------------------------------
+*No repurposing in the first period
+*-----------------------------------------------------------------------------------------------------
+B_AR.fx(a,e,e,y)$(ORD(y)=1)=0;
+K_RA.fx(a,e,f,y)$(ORD(y)=1)=0;
+B_WR.fx(n,e,e,y)$(ORD(y)=1)=0;
+K_RW.fx(n,e,f,y)$(ORD(y)=1)=0;
+*-----------------------------------------------------------------------------------------------------
+* Disallow H2 conversion if not H2-ready
+*-----------------------------------------------------------------------------------------------------
+*Can only make bidirectional if "Reversable?" - TO DO
+*Can only repurpose arc if "H2-ready" - TO DO
+*Can only repurpose storage if H2-ready 
+K_W.fx(n,'G',y)     $(dat_w(n,'G','H2-ready')<=0)=cap_ww(n,'G',y);
+*K_RW.fx(n,'G','G',y)$(dat_w(n,'G','H2-ready')<=0)=cap_ww(n,'G',y);
+
+*K_W.fx(n,'H',y)=cap_ww(n,'H',y);
+
+
 *xa_lb(a,e,y)$(lb_ax(a,e,y)>0)..
 *    X_A(a,e,y)  =G= lb_axa(a,e,y)
 *;
 *xa_ub(a,y)$(ub_ax(a,y)+sum(ao$opp(ao,a),ub_axa(ao,y))>0)..
 *    sum(e,X_A(a,e,y)+sum(ao$opp(ao,a),X_A(ao,e,y))) =L= ub_ax(a,y)+sum(ao$opp(ao,a),ub_ax(ao,y))+XA_FS(a,y);
 *;
-
-*Regasifier capacity limit
-Q_R.up(n,e,y,h)=dat_r(n,e,'2025','ub');
-*Injection and extraction capacity limit; currently not adjustable. Vols2(e) adjusted in input data assignments
-Q_I.up(n,e,y,h)=cap_wi(n,e,y);
-Q_E.up(n,e,y,h)=cap_we(n,e,y);
-
-*Q_I.fx(n,e,y,h)$(cap_ww(n,e,y)<=0)=0;
-*Q_E.fx(n,e,y,h)$(cap_ww(n,e,y)<=0)=0;
-
-*Capacity can be repurposed so no conditional $cap_ww(n,e,y)
-w_lim(n,e,y)..      sum(h,scaleUp(h)*Q_E(n,e,y,h))*vols2(e) =L= K_W(n,e,y);
-w_cyc(n,e,y)..      sum(h,scaleUp(h)*Q_E(n,e,y,h))          =E= e_w(n,e)*sum(h,scaleUp(h)*Q_I(n,e,y,h));
-
 
 ** LIMIT HOW OFTEN THINGS MAY HAPPEN **
 *One of these makes the problem infeasible - leave out for now.
@@ -244,7 +309,9 @@ w_cyc(n,e,y)..      sum(h,scaleUp(h)*Q_E(n,e,y,h))          =E= e_w(n,e)*sum(h,s
 *lim_b_wr(n)..       sum((e,f,y),B_WR(n,e,f,y))  =L= 1;    
 
 *option Q_B:0:0:1; display Q_B.l;
-
+*=====================================================================*
+* 4. Model Definition and Execution                                   *
+*=====================================================================*
 *$ontext
 *option mip=xpress, limrow=20,limcol=20;
 option reslim=7200;
@@ -253,22 +320,61 @@ option mip=cplex, limrow=1E3,limcol=1E3;
 model MGET /all/;
 solve MGET min TC using MIP;
 
+*=====================================================================*
+* 5. Post-Execution Reporting and Output                              *
+*=====================================================================*
 $INCLUDE report.gms
-*$INCLUDE create_excel_input_gdx.gms
+* $INCLUDE create_excel_input_gdx.gms
 
-*display e_a, B_AR.l, B_BD.l, BD.l, K_A.l, K_OPP.l, K_BD.l, K_RA.l, Q_P.l, Q_S.l, X_A.l, F_A.l, ZDS.l
-;
+* Display if needed for debugging
+* display e_a, B_AR.l, B_BD.l, BD.l, K_A.l, K_OPP.l, K_BD.l, K_RA.l, Q_P.l, Q_S.l, X_A.l, F_A.l, ZDS.l;
+
+*-----------------------------------------------------------------------------------------------------
+* Backup old result file if it exists
+*-----------------------------------------------------------------------------------------------------
+
+* NOTE: Do NOT create folders in GAMS (handle in .bat file instead)
+
+* Delete previous backup (if exists)
+$if exist gdx\%string%_var_old.gdx $call del gdx\%string%_var_old.gdx
+
+* Rename current result to backup (if exists)
+$if exist gdx\%string%_var.gdx $call ren gdx\%string%_var.gdx %string%_var_old.gdx
+
+*-----------------------------------------------------------------------------------------------------
+* Export current results to GDX
+*-----------------------------------------------------------------------------------------------------
 execute_unload 'gdx/%string%_var',
     BD,
     F_A, K_A, K_OPP, K_BD, K_RA, Q_B, Q_P, Q_S, X_A,
     ZDS,
-*    ZXA_FS
+* ZXA_FS,
     B_AR, B_BD, TC
 ;
+
 
 parameter flag;
 flag('Infeasible?')= sum((z,n,e,y,h), ZDS.l(z,n,e,y,h));
 display 'If flag is positive, check reports for surpluses and deficits', flag;
+
+*=====================================================================*
+* 6. Verification Summary Export                                      *
+*=====================================================================*
+
+$include Verify_nodes_arcs.gms
+
+* Export abort/warn sets for diagnostic purposes
+$if exist gdx\%string%_verify.gdx $call del gdx\%string%_verify.gdx
+
+execute_unload 'gdx/%string%_verify',
+  abort_n,
+  warn_n,
+  abort_a;
+
+*=====================================================================*
+*  END OF FILE                                                        *
+*  File: MGET.gms                                                     *                                        *
+*=====================================================================*
 
 $onText
 $offText

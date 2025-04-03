@@ -1,38 +1,61 @@
-Display "Just check the GDX Files ($gdxIn) E:\Dropbox\MGET\GAMS\gdx\%data%.gdx and gdx/%string%_inputs"
-;
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-*-*          READ EXCEL FILE
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-%KeepGdx%$call "GDXXRW %path%/%data%.xlsx O=gdx/%data% SkipEmpty=0 @read_data.txt"
-%KeepGdx%$ifE errorLevel<>0 $abort.noError 'Something wrong reading Excel, see message(s) above. NB GDXXRW is NOT supported on MAC!!!! NB2 Bad data range may mean you have not saved the file after changing a Named Excel range'
+*=====================================================================*
+* 2. Input Data Conversion & Loading                                  *
+*=====================================================================*
+* This section:
+*   - Converts Excel input to GDX (%string%_inputs and %data%)
+*   - Backs up previous GDX files
+*   - Loads key sets and parameters from GDX
+*   - Handles known errors gracefully (e.g., named ranges)
+*=====================================================================*
 
+$if not setglobal KeepGdx $setglobal KeepGdx ''
+
+* Convert Excel to GDX (first version: full input)
+$call "%KeepGdx%GDXXRW %excel_file% O=gdx/%string%_inputs SkipEmpty=0 @read_data.txt"
+
+* Backup previous input file before overwriting
+$call if exist gdx/%string%_inputs_old.gdx del gdx/%string%_inputs_old.gdx
+$call if exist gdx/%string%_inputs.gdx ren gdx/%string%_inputs.gdx %string%_inputs_old.gdx
+
+*-------------------------------------------------------------*
+* Second GDX (for raw data reference or debugging purposes)
+*-------------------------------------------------------------*
+
+$call "%KeepGdx%GDXXRW %excel_file% O=gdx/%data% SkipEmpty=0 @read_data.txt"
+
+* If GDXXRW fails, abort with a helpful message
+$ifE errorLevel<>0 $abort.noError "Something went wrong reading Excel. Double check named ranges or Excel save. (Also, GDXXRW doesn’t work on Mac!)"
+
+*"%path%/input_data/%data%.xlsx"
+$onMulti
 Set
-    aux_tot "Auxiliary set for label order"    /TOT,Obj,Idx,''/
-    A       "Arcs; if reversable define the other direction too"
-    CN      "Countries"
-    F       "Fuels / Energy carriers"
-    N       "Nodes (NUTS3 level)"
-    NUTS2   NUTS2 regions
-    RGN     "Regions"
-    Z       "Surplus / deficit penalty types"
+    aux_tot     "Auxiliary set for label order [-]"    /TOT,Obj,Idx,''/
+    A             "Arcs; if reversable define the other direction too [-]"
+    CN           "Countries [-]"
+    F             "Fuels / Energy carriers [-]"
+    N             "Nodes (NUTS3 level) [-]"
+    NUTS2     "NUTS2 regions [-]"
+    RGN        "Regions [-]"
+    Z            "Surplus / deficit penalty types [-]"
     aux_rep "Auxiliary set for label order"   /TOT,nom,disc,'+','-','Z','K','0',
     'purp-','purp+',purp,bidir,'cap',capBD,1,2,3,4,5,6,7,8,'expans', P,D,D2,LNG,A,A+,A-,'C','G','H',W,P+,M+,Z+,P-,Z-,D-/
     aux_rep_c /prod,flow+,flow-,expans+,expans-, purp,repurp,bidir,bidfx,invest,Stor,Regas,Blend,ZXA,ZN2,ZA,ZD,ZMD,ZMS,ZPL,ZPU/
 ;
 alias (a,ao,ai),(e,f),(n,m),(rgn,ro,ri),(cn,c)
 ;
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 *-*          TIME STRUCTURE AND DISCOUNTING
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-$INCLUDE data/%hor%.gms              /* load the years set */
+*--------------------------------------------------------------------------------------------------------------------------*
+*$INCLUDE data/%hor%.gms
+$include "%path%/input_data/%hor%.gms"              /* load the years set */
 set H hours /1*%oper%/
 ;
 ALIAS (y,y2),(yrep,yrep2),(h,h2)
 ;
 Parameter
-    ypred(y,y)      "Immediate predecessor year"
-    yscai(y,y)      "All successors including the current year"
-    EOH(y)          "End of Horizon correction"
+    ypred(y,y)      "Immediate predecessor year [-]"
+    yscai(y,y)       "All successors including the current year [-]"
+    EOH(y)          "End of Horizon correction [-]"
 ;
 ypred(y2,y)$(ord(y)-ord(y2)=1)=1;
 yscai(y2,y)$(ord(y)<=ord(y2))= 1;
@@ -42,22 +65,22 @@ EOH(y)=1;
 EOH(y)$(ord(y)=card(y))=3;
 
 *$ontext
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 *            LOAD AND ASSIGN OTHER DATA
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 Parameter
-    dat_o            "Other data =dat_o('','','');"
-    bigM             "bigM"
-    c_bl            Blending cost
-    c_z(z,e)         "Feasibility penalties"
-    is_g(e)          Is natural gas
-    is_h(e)          Is hydrogen
-    not_g(e)         Not natural gas   
-    not_h(e)         Not hydrogen   
-    r(y)             "discount factor"
-    vola2(e)         "energy to arc volume unit conversion, relative to g"
-    vols2(e)         "energy to storage volume unit conversion, relative to g"
-    scaleUp(h)         "Number of hours represented by this hour"
+    dat_o             "Raw data loaded from Excel (sheet: 'other_data'); Other data =dat_o('','','')" 
+    bigM              "Big-M constant for logical constraints [GWh/h]"
+    c_bl               "Blending cost: fuel e into f [€/GWh]"
+    c_z(z,e)         "Feasibility penalties for surplus/deficit type z, fuel e [€/GWh]"
+    is_g(e)          "Flag: 1 if natural gas, 0 otherwise [-]"
+    is_h(e)          "Flag: 1 if hydrogen, 0 otherwise [-]"
+    not_g(e)        "Flag: 1 if not natural gas [-] "   
+    not_h(e)        "Flag: 1 if not hydrogen [-]"   
+    r(y)               "Discount factor [-]"
+    vola2(e)         "Energy to arc volume unit conversion, relative to g [volume/GWh]"
+    vols2(e)         "Energy to storage volume unit conversion, relative to g [volume/GWh]"
+    scaleUp(h)     "Number of hours represented by this hour [-]"
 ;    
 $gdxin gdx/%data%
 $load  dat_o,f,z
@@ -86,24 +109,24 @@ vols2(e)=1; vols2(e)$dat_o('vols2',e,'')=dat_o('vols2',e,'');
 scaleUp(h)=dat_o('scale',h,'');  
 
 *$ontext
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 *            LOAD AND ASSIGN NODES DATA
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 Parameter
-    cap_p(n,e,y,h)  Supply capacity
-    c_lr            Regasification costs
-    c_p(n,e,y)      "supply unit cost"
-    dat_c           Demand data loaded from Excel
-    dat_n           Nodes data loaded from Excel
-    dat_p           Supply data loaded from Excel
-    dat_r           Regasifier data loaded from Excel
-    dmd(n,e,y,h)      NUTS3 Demand (potential)
-    dmd2(nuts2,e,y,h) NUTS2 level demand (hydrogen)
-    lb_p(n,e,y,h)   lower bound supply
-    ub_bl           upper bound blending fraction - energy content
-    n_in_c(n,c)     node in country
-    n_in_2(n,nuts2) node in nuts2
-    n_in_r(n,rgn)   node in region
+    cap_p(n,e,y,h)      "Supply capacity at node n [GWh/h]"
+    c_lr                     "Regasification costs at node n [€/GWh]"
+    c_p(n,e,y)            "Supply unit cost [€/GWh]"
+    dat_c                   "Demand data loaded from Excel"
+    dat_n                   "Nodes data loaded from Excel"
+    dat_p                   "Supply data loaded from Excel"
+    dat_r                    "Regasifier data loaded from Excel"
+    dmd(n,e,y,h)         "NUTS3 Demand (potential) [GWh/h]"
+    dmd2(nuts2,e,y,h) "NUTS2 level demand (hydrogen) [GWh/h]"
+    lb_p(n,e,y,h)         "lower bound supply  at node n [GWh/h]"
+    ub_bl                   "upper bound blending fraction - energy content : e into f [%]"
+    n_in_c(n,c)           "Mapping: node n in country c [-]"
+    n_in_2(n,nuts2)    "Mapping: node n in NUTS2 region [-]"
+    n_in_r(n,rgn)        "Mapping: node n in region [-]"
 ;
 $gdxin gdx/%data%
 $load  n,cn,rgn,nuts2,dat_n,dat_p,dat_r,dat_c
@@ -162,7 +185,8 @@ ES620     0.2   0.3  0.4  0.5    2
 DZ000     0.1   0.2  0.5  1.0   10 
 ;
 
-$INCLUDE data/scen_%string%_sup.gms
+*$INCLUDE data/scen_%string%_sup.gms
+$INCLUDE "%path%/input_data/scen_%string%_sup.gms"
 
 *lb_p(n,e,y,h)$(n_in_c(n,'ES') AND is_h(e))=cap_p(n,e,y,h);
 *lb_p(n,e,y,h)$(n_in_c(n,'ES') AND is_h(e) AND cap_p(n,e,y,h))=1E-2;
@@ -179,7 +203,8 @@ $ontext
 1 Winter, 2 Summer, 3 Shoulder, 4 MIN
 $offtext
 
-$INCLUDE data/scen_%string%_dmd.gms
+*$INCLUDE data/scen_%string%_dmd.gms
+$INCLUDE "%path%/input_data/scen_%string%_dmd.gms"
 
 
 *Regas -
@@ -188,31 +213,31 @@ c_lr(n,e)= 1* dat_r(n,e,'2025','cal_c');
 c_lr(n,e)$not_g(e)= 9999;
 
 *$ontext
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 *            LOAD AND ASSIGN ARCS DATA
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 Parameter
-    a_s(a,n)        "arc start node"
-    a_e(a,n)        "arc end node"
-    anm(a,n,m)      "Arc exists between nodes n and m"
-    cap_a(a,e,y)    "Arc capacity flow limit - volumetric"
-    c_a(a,e,y)      "arc usage unit cost; multiply by vola2?!?!"
-    c_az            
-    c_ab(a,e,y)      "Half ? of the bidirectional unit cost - I think I corrected this, see cost report"
-    dat_a           Arcs data loaded from Excel
-    dat_ao          Arcs start and end nodes to define opposite direction arcs.
+    a_s(a,n)             "Start node of arc a [-]"
+    a_e(a,n)            "End node of arc a [-]"
+    anm(a,n,m)       "Arc exists between nodes n and m [-]"
+    cap_a(a,e,y)      "Arc capacity flow limit - volumetric [GWh/h]"
+    c_a(a,e,y)         "Arc flow cost [€/GWh]"
+    c_az                 "Penalty for infeasible arc [€/GWh]"
+    c_ab(a,e,y)        "Bidirectional flow cost component [€/GWh]"
+    dat_a               "Arcs data loaded from Excel"
+    dat_ao             "Arcs start and end nodes to define opposite direction arcs."
 *   dat_k           Arc capacities data loaded from Excel
 *   dat_x           Arc expansions data loaded from Excel
-    f_ab(a,y)        "Half ? of the bidirectional fixed cost - I think I corrected this, see cost report"
-    c_ar(a,e,f,y)    "repurpose unit cost"
-    f_ar(a,e,f,y)    "repurpose fixed cost"
-    c_ax(a,e,y)      "arc expansion unit cost, there is no fixed cost component"
-    e_a(a,e)        "arc flow efficiency"
-    lb_ax(a,e,y)     "Lower bound planned expansion"
-    ub_ax(a,y)       "Arc expansion limit - volumetric"
-    opp(a,a)        "Arc in the opposite direction"
-    scaleUp(h)        "Number of hours represented by this hour"
-    is_bid(a)         Arc is bidirectional  
+    f_ab(a,y)         "Fixed cost for bidirectional arc [€]"
+    c_ar(a,e,f,y)     "Repurpose unit cost (var) from e to f [€/GWh]"
+    f_ar(a,e,f,y)     "Repurpose fixed cost (fixed) [€]"
+    c_ax(a,e,y)      "Arc expansion unit cost, there is no fixed cost component  [€/GWh/h]"
+    e_a(a,e)          "Arc flow efficiency [-]"
+    lb_ax(a,e,y)     "Lower bound planned expansion  [GWh/h]"
+    ub_ax(a,y)      "Arc expansion limit - volumetric  [GWh/h]"
+    opp(a,a)         "Arc in the opposite direction [-]"
+    scaleUp(h)      "Number of hours represented by this hour [-]"
+    is_bid(a)         "Flag: 1 if arc is bidirectional [-]" 
 ;
 $gdxin gdx/%data%
 $load  a,dat_a
@@ -325,18 +350,18 @@ loop{(ai,ao,e,y)$(opp(ai,ao) AND c_a(ai,e,y)>0 AND c_a(ao,e,y)<=1E-5),
 c_ar(a,e,e,y)=0;
 f_ar(a,e,e,y)=0;
 
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 *            LOAD AND ASSIGN STORAGE DATA
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*--------------------------------------------------------------------------------------------------------------------------*
 Parameter
-    dat_w           Storage data loaded from Excel
-    cap_we          Storage extraction cap (hourly)
-    cap_wi          Storage injection cap (hourly)
-    cap_ww          Storage working gas cap (total)
-    e_w(n,e)        Storage efficiency
-    c_we(n,e)       Extraction costs
-    stor_i(n,e,y,h,*) storage injection data
-    stor_x(n,e,y,h,*) storage extraction data
+    dat_w                 'Storage data loaded from Excel'
+    cap_we              'Storage extraction cap (hourly) [GWh/h]'
+    cap_wi               'Storage injection cap (hourly) [GWh/h]'
+    cap_ww             'Storage working gas cap (total) [GWh]'
+    e_w(n,e)            'Storage efficiency (0–1) [-]'
+    c_we(n,e)          'Storage Extraction costs [€/GWh]'
+    stor_i(n,e,y,h,*)  'Storage injection data [€/GWh]'
+    stor_x(n,e,y,h,*) 'Storage extraction data [€/GWh]'
     
 ;
 $gdxin gdx/%data%
@@ -373,6 +398,22 @@ stor_i(n,e,y,h,'ub')=max(dat_w(n,e,y,h,'I','ub'),
 $onText
 $offText
 %Verify%$INCLUDE Verify_nodes_arcs.gms
+* Save verification results
+Set
+    abort_n(n)    "Nodes with problematic input data"
+    warn_n(n)    "Isolated nodes with no connections"
+    abort_a        "Arcs (pipelines) with missing or invalid data";
+
+%Verify%$INCLUDE Verify_nodes_arcs.gms
+* Save verification results
+
+
+execute_unload 'gdx/%string%_verify',
+    abort_n,
+    warn_n,
+    abort_a;
+
+
 
 parameter rep_a;
 rep_a(a,y,n,m,e,'cap')    $(a_s(a,n)=1 AND a_e(a,m)=1)=     cap_a(a,e,y);
@@ -380,11 +421,21 @@ rep_a(a,y,n,m,e,'x_u')    $(a_s(a,n)=1 AND a_e(a,m)=1)=     ub_ax(a,y);
 rep_a(a,y,n,m,e,'x_l')    $(a_s(a,n)=1 AND a_e(a,m)=1)=     lb_ax(a,e,y);
 rep_a(a,y,n,m,e,'opp')    $(a_s(a,n)=1 AND a_e(a,m)=1)=     sum(ao$opp(ao,a),cap_a(ao,e,y));
 
+
+* Make sure the folder exists
+$call if not exist "gdx" mkdir "gdx"
+
+* Delete old backup if it exists
+$call if exist "gdx/%string%_inputs_old.gdx" del "gdx/%string%_inputs_old.gdx"
+
+* Rename previous result to backup
+$call if exist "gdx/%string%_inputs.gdx" ren "gdx/%string%_inputs.gdx" "%string%_inputs_old.gdx"
+
 execute_unload 'gdx/%string%_inputs',
-        a
-        a_e
-        a_s
-        anm
+        a,
+        a_e,
+        a_s,
+        anm,
         bigM,
         c,
         c_a

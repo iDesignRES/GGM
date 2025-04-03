@@ -13,12 +13,6 @@
             "file": "MGET.lst",
             "name": "MGET.lst",
             "type": "lst"
-        },
-        {
-            "codecMib": 106,
-            "file": "report.gms",
-            "name": "report.gms",
-            "type": "gms"
         }
     ],
     "options": [

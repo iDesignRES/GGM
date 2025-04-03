@@ -120,6 +120,23 @@ rep_b(a,e,e,y,'bidir')$(K_BD.l(a,e,y)>0.001)=  B_BD.l(a,y);
 rep_w(n,e,h,y,'Flow')=            Q_E.l(n,e,y,h)-Q_I.l(n,e,y,h);
 rep_w(n,e,h,y,'Vol')= scaleUp(h)*(Q_E.l(n,e,y,h)-Q_I.l(n,e,y,h));
 
+* Backup old result file if it exists
+* Make sure the folder exists
+** Ensure GDX folder exists
+$call if not exist "gdx" mkdir "gdx"
+
+* Delete old backup if it exists
+$call if exist "gdx/%string%_results_old.gdx" del "gdx/%string%_results_old.gdx"
+
+* Rename previous result to backup
+$call if exist "gdx/%string%_results.gdx" ren "gdx/%string%_results.gdx" "%string%_results_old.gdx"
+
+* Save new results
 execute_unload 'gdx/%string%_results',
-    rep_n,rep_k,rep_f,rep_ar, rep_c, rep_b, rep_w, rep_ff, rep_fn, rep_y
-;
+    rep_n, rep_k, rep_f, rep_ar, rep_c, rep_b, rep_w, rep_ff, rep_fn, rep_y;
+
+
+* Save new results
+execute_unload 'gdx/%string%_results',
+    rep_n, rep_k, rep_f, rep_ar, rep_c, rep_b, rep_w, rep_ff, rep_fn, rep_y;
+
