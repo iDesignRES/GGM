@@ -53,6 +53,10 @@ MGET includes several configurable features, specifically in connection with iDe
 This model is designed to be run **locally** using the GAMS software environment.  
 It is **not configured for online/cloud-based execution**.
 
+> **GAMS Compatibility**  
+> The model was developed and tested using **GAMS version 45.7.0**.  
+> While it may run with other versions, using a similar version is recommended.
+
 To install and run the model, please refer to the detailed guide provided in the `documents/` folder:
 
  `documents/Installation_Guide_MGET.docx`
