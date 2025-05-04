@@ -11,5 +11,5 @@ $setglobal string     %data%_%hor%_%oper%_%scen%
 
 $setglobal excel_file "%path%/input_data/%data%.xlsx"
 
-$include load_input_from_Excel.gms
+$include load_input_from_Excel_v0_2_0.gms
 

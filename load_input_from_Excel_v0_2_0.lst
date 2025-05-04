@@ -1,0 +1,63 @@
+GAMS 45.7.0  64fbf3ce Jan 18, 2024          WEX-WEI x86 64bit/MS Windows - 05/04/25 18:59:33 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  *=====================================================================*
+   2  * File        : load_input_from_Excel.gms
+   3  * Version     : v0.2.0
+   4  * Date        : 2025-05-04
+   5  * Author      : [Your Name or Team]
+   6  * Description : Loads structured input data from Excel into GAMS,
+   7  *               including sets, parameters, scenario files, and performs
+   8  *               input verification. Compatible with MGET_v0_2_0.gms.
+   9  *=====================================================================*
+  10   
+  11   
+  12  *=====================================================================*
+  13  * 2. Input Data Conversion & Loading                                  *
+  14  *=====================================================================*
+  15  * This section:
+  16  *   - Converts Excel input to GDX (%string%_inputs and %data%)
+  17  *   - Backs up previous GDX files
+  18  *   - Loads key sets and parameters from GDX
+  19  *   - Handles known errors gracefully (e.g., named ranges)
+  20  *=====================================================================*
+  21   
+  23   
+  24  * Convert Excel to GDX (first version: full input)
+  26   
+  27  * Backup previous input file before overwriting
+  30   
+  31  *-------------------------------------------------------------*
+  32  * Second GDX (for raw data reference or debugging purposes)
+  33  *-------------------------------------------------------------*
+  34   
+  36   
+  37  * If GDXXRW fails, abort with a helpful message
+GAMS 45.7.0  64fbf3ce Jan 18, 2024          WEX-WEI x86 64bit/MS Windows - 05/04/25 18:59:33 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Users\parinaza\ResearchProject\GGM\load_input_from_Excel_v0_2_0.gms
+     2       25 CALL           1      25  GDXXRW %excel_file% O=gdx/%string%_inputs SkipEmpty=0 @read_data.txt" ata.txt" 
+     3       28 CALL           1      28  if exist gdx/%string%_inputs_old.gdx del gdx/%string%_inputs_old.gdx " ata.txt" 
+     4       29 CALL           1      29  if exist gdx/%string%_inputs.gdx ren gdx/%string%_inputs.gdx %string%_inputs_old.gdx 
+     5       35 CALL           1      35  GDXXRW %excel_file% O=gdx/%data% SkipEmpty=0 @read_data.txt" ata.txt" nputs_old.gdx 
+
+
+COMPILATION TIME     =        5.047 SECONDS      2 MB  45.7.0 64fbf3ce WEX-WEI
+
+
+USER: Small MUD - 5 User License                     S230523|0002AP-GEN
+      Norwegian University of Science and Technology             DC7530
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\parinaza\ResearchProject\GGM\load_input_from_Excel_v0_2_0.gms
+Output     C:\Users\parinaza\ResearchProject\GGM\load_input_from_Excel_v0_2_0.lst

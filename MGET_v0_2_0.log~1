@@ -1,0 +1,142 @@
+--- Job MGET_v0_2_0.gms Start 05/04/25 18:50:21 45.7.0 64fbf3ce WEX-WEI x86 64bit/MS Windows
+--- Applying:
+    C:\GAMS\45\gmsprmNT.txt
+--- GAMS Parameters defined
+    Input C:\Users\parinaza\ResearchProject\GGM\MGET_v0_2_0.gms
+    PageSize 0
+    ScrDir C:\Users\parinaza\ResearchProject\GGM\225a\
+    SysDir C:\GAMS\45\
+    LogOption 3
+    ErrMsg 1
+    ErrorLog 99
+    IDE 1
+    LstTitleLeftAligned 1
+Licensee: Small MUD - 5 User License                     S230523|0002AP-GEN
+          Norwegian University of Science and Technology             DC7530
+          C:\Users\parinaza\OneDrive - NTNU\Documents\GAMS\gamslice.txt
+          License Admin: Ruud Egging, ruud.egging@ntnu.no                  
+          The maintenance period of the license expired on Aug 15, 2024
+          Please contact GAMS or your distributor for further information
+Processor information: 1 socket(s), 4 core(s), and 8 thread(s) available
+GAMS 45.7.0   Copyright (C) 1987-2024 GAMS Development. All rights reserved
+--- Starting compilation
+--- MGET_v0_2_0.gms(49) 2 Mb
+--- . case_config.gms(14) 2 Mb 1 Error
+*** Error 282 in C:\Users\parinaza\ResearchProject\GGM\cases\spain_case\case_config.gms
+    Unable to open include file
+       Hint: Does the filename need to be quoted?
+--- . case_config.gms(15) 2 Mb
+--- MGET_v0_2_0.gms(50) 2 Mb
+--- . load_input_from_Excel_v0_2_0.gms(25) 2 Mb
+--- call GDXXRW cases/Spain_case/input_data/Spain.xlsx O=gdx/Spain_2040_4_0_inputs SkipEmpty=0 @read_data.txt
+
+GDXXRW           45.7.0 64fbf3ce Jan 18, 2024          WEI x86 64bit/MS Window
+Input file : C:\Users\parinaza\ResearchProject\GGM\cases\Spain_case\input_data\Spain.xlsx
+Output file: C:\Users\parinaza\ResearchProject\GGM\gdx\Spain_2040_4_0_inputs.gdx
+Total time = 4234 Ms
+--- . load_input_from_Excel_v0_2_0.gms(28) 2 Mb
+--- call if exist gdx/Spain_2040_4_0_inputs_old.gdx del gdx/Spain_2040_4_0_inputs_old.gdx
+--- . load_input_from_Excel_v0_2_0.gms(29) 2 Mb
+--- call if exist gdx/Spain_2040_4_0_inputs.gdx ren gdx/Spain_2040_4_0_inputs.gdx Spain_2040_4_0_inputs_old.gdx
+--- . load_input_from_Excel_v0_2_0.gms(35) 2 Mb
+--- call GDXXRW cases/Spain_case/input_data/Spain.xlsx O=gdx/Spain SkipEmpty=0 @read_data.txt
+
+GDXXRW           45.7.0 64fbf3ce Jan 18, 2024          WEI x86 64bit/MS Window
+Input file : C:\Users\parinaza\ResearchProject\GGM\cases\Spain_case\input_data\Spain.xlsx
+Output file: C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+Total time = 3703 Ms
+--- . load_input_from_Excel_v0_2_0.gms(61) 3 Mb
+--- .. 2040.gms(5) 3 Mb
+--- . load_input_from_Excel_v0_2_0.gms(96) 3 Mb
+--- GDXin=C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+--- GDX File ($gdxIn) C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+--- . load_input_from_Excel_v0_2_0.gms(142) 3 Mb
+--- GDXin=C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+--- GDX File ($gdxIn) C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+--- . load_input_from_Excel_v0_2_0.gms(200) 3 Mb
+--- .. scen_Spain_2040_4_0_sup.gms(9) 3 Mb
+--- . load_input_from_Excel_v0_2_0.gms(218) 3 Mb
+--- .. scen_Spain_2040_4_0_dmd.gms(84) 3 Mb
+--- . load_input_from_Excel_v0_2_0.gms(253) 3 Mb
+--- GDXin=C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+--- GDX File ($gdxIn) C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+--- . load_input_from_Excel_v0_2_0.gms(378) 3 Mb
+--- GDXin=C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+--- GDX File ($gdxIn) C:\Users\parinaza\ResearchProject\GGM\gdx\Spain.gdx
+--- . load_input_from_Excel_v0_2_0.gms(437) 3 Mb
+--- call if not exist "gdx" mkdir "gdx"
+--- . load_input_from_Excel_v0_2_0.gms(440) 3 Mb
+--- call if exist "gdx/Spain_2040_4_0_inputs_old.gdx" del "gdx/Spain_2040_4_0_inputs_old.gdx"
+--- . load_input_from_Excel_v0_2_0.gms(443) 3 Mb
+--- call if exist "gdx/Spain_2040_4_0_inputs.gdx" ren "gdx/Spain_2040_4_0_inputs.gdx" "Spain_2040_4_0_inputs_old.gdx"
+--- . load_input_from_Excel_v0_2_0.gms(498) 3 Mb
+--- MGET_v0_2_0.gms(321) 3 Mb 2 Errors
+*** Error 257 in C:\Users\parinaza\ResearchProject\GGM\MGET_v0_2_0.gms
+    Solve statement not checked because of previous errors
+--- MGET_v0_2_0.gms(326) 3 Mb
+--- . report.gms(15) 3 Mb 3 Errors
+*** Error 141 in C:\Users\parinaza\ResearchProject\GGM\report.gms
+    Symbol declared but no values have been assigned. Check for missing
+       data definition, assignment, data loading or implicit assignment
+       via a solve statement. Suppress with $onImplicitAssign.
+       A wild shot: You may have spurious commas in the explanatory
+       text of a declaration. Check symbol reference list.
+--- . report.gms(27) 3 Mb 4 Errors
+*** Error 141 in C:\Users\parinaza\ResearchProject\GGM\report.gms
+    Symbol declared but no values have been assigned. Check for missing
+       data definition, assignment, data loading or implicit assignment
+       via a solve statement. Suppress with $onImplicitAssign.
+       A wild shot: You may have spurious commas in the explanatory
+       text of a declaration. Check symbol reference list.
+--- . report.gms(44) 3 Mb 5 Errors
+*** Error 141 in C:\Users\parinaza\ResearchProject\GGM\report.gms
+    Symbol declared but no values have been assigned. Check for missing
+       data definition, assignment, data loading or implicit assignment
+       via a solve statement. Suppress with $onImplicitAssign.
+       A wild shot: You may have spurious commas in the explanatory
+       text of a declaration. Check symbol reference list.
+--- . report.gms(45) 3 Mb 6 Errors
+*** Error 141 in C:\Users\parinaza\ResearchProject\GGM\report.gms
+    Symbol declared but no values have been assigned. Check for missing
+       data definition, assignment, data loading or implicit assignment
+       via a solve statement. Suppress with $onImplicitAssign.
+       A wild shot: You may have spurious commas in the explanatory
+       text of a declaration. Check symbol reference list.
+--- . report.gms(71) 3 Mb 7 Errors
+*** Error 141 in C:\Users\parinaza\ResearchProject\GGM\report.gms
+    Symbol declared but no values have been assigned. Check for missing
+       data definition, assignment, data loading or implicit assignment
+       via a solve statement. Suppress with $onImplicitAssign.
+       A wild shot: You may have spurious commas in the explanatory
+       text of a declaration. Check symbol reference list.
+--- . report.gms(113) 3 Mb 8 Errors
+*** Error 141 in C:\Users\parinaza\ResearchProject\GGM\report.gms
+    Symbol declared but no values have been assigned. Check for missing
+       data definition, assignment, data loading or implicit assignment
+       via a solve statement. Suppress with $onImplicitAssign.
+       A wild shot: You may have spurious commas in the explanatory
+       text of a declaration. Check symbol reference list.
+--- . report.gms(126) 3 Mb
+--- call if not exist "gdx" mkdir "gdx"
+--- . report.gms(129) 3 Mb
+--- call if exist "gdx/Spain_2040_4_0_results_old.gdx" del "gdx/Spain_2040_4_0_results_old.gdx"
+--- . report.gms(132) 3 Mb
+--- call if exist "gdx/Spain_2040_4_0_results.gdx" ren "gdx/Spain_2040_4_0_results.gdx" "Spain_2040_4_0_results_old.gdx"
+--- . report.gms(142) 3 Mb
+--- MGET_v0_2_0.gms(339) 3 Mb
+--- call del gdx\Spain_2040_4_0_var_old.gdx
+--- MGET_v0_2_0.gms(342) 3 Mb
+--- call ren gdx\Spain_2040_4_0_var.gdx Spain_2040_4_0_var_old.gdx
+--- MGET_v0_2_0.gms(364) 3 Mb
+--- . Verify_nodes_arcs.gms(53) 3 Mb
+--- MGET_v0_2_0.gms(367) 3 Mb
+--- call del gdx\Spain_2040_4_0_verify.gdx
+--- MGET_v0_2_0.gms(381) 3 Mb 8 Errors
+*** Status: Compilation error(s)
+--- Job MGET_v0_2_0.gms Stop 05/04/25 18:50:31 elapsed 0:00:09.942
+Parameter format not correct - "Spain_2040_4_0_inputs_old.gdx".
+The syntax of the command is incorrect.
+The system cannot find the path specified.
+The system cannot find the path specified.
+The system cannot find the path specified.
+The system cannot find the path specified.

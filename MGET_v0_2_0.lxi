@@ -1,0 +1,96 @@
+B 3 C o m p i l a t i o n
+B 26 Equation Listing    SOLVE MGET Using MIP From line 1528
+D 29 obj
+D 120 p_cap
+D 1019 p_min
+D 1024 dmd_n3
+D 2875 dmd_n2
+D 3422 mb
+D 5427 max_bl
+D 6038 a_lim
+D 8043 a_opp1
+D 10048 a_opp2
+D 12053 bd_cost
+D 14058 bidir
+D 15213 ar_cap
+D 17218 sos_a
+D 19223 sos_w
+D 20504 bil_a1
+D 22509 bil_a2
+D 24514 w_lim
+D 26221 w_cyc
+D 27928 bil_w1
+D 29209 bil_w2
+D 31214 wr_cap
+B 32496 Column Listing      SOLVE MGET Using MIP From line 1528
+E 32499 B_BD
+E 40006 B_AR
+E 45266 B_WR
+E 50270 TC
+E 50277 BD
+E 55200 F_A
+E 62352 K_A
+E 71844 K_W
+E 76533 K_BD
+E 82707 K_OPP
+E 93881 K_RA
+E 100066 K_RW
+E 106070 Q_B
+E 110466 Q_E
+E 117470 Q_I
+E 122594 Q_P
+E 126866 Q_R
+E 131870 Q_S
+E 136546 X_A
+E 141300 ZDS
+E 145304 ZN2
+B 149501 Range Statistics    SOLVE MGET Using MIP From line 1528
+B 149512 Model Statistics    SOLVE MGET Using MIP From line 1528
+B 149525 Solution Report     SOLVE MGET Using MIP From line 1528
+F 149572 obj
+F 149576 p_cap
+F 150029 p_min
+F 150034 dmd_n3
+F 150963 dmd_n2
+F 151240 mb
+F 154653 max_bl
+F 154962 a_lim
+F 162791 a_opp1
+F 164752 a_opp2
+F 166713 bd_cost
+F 171038 bidir
+F 171619 ar_cap
+F 173091 sos_a
+F 174563 sos_w
+F 175207 bil_a1
+F 176679 bil_a2
+F 181085 w_lim
+F 181942 w_cyc
+F 182799 bil_w1
+F 183443 bil_w2
+F 185365 wr_cap
+G 186009 B_BD
+G 186666 B_AR
+G 191724 B_WR
+G 193648 TC
+G 193652 BD
+G 194309 F_A
+G 202138 K_A
+G 204099 K_W
+G 204956 K_BD
+G 206917 K_OPP
+G 208878 K_RA
+G 214262 K_RW
+G 216184 Q_B
+G 226413 Q_E
+G 229826 Q_I
+G 233239 Q_P
+G 236652 Q_R
+G 240065 Q_S
+G 243478 X_A
+G 245439 ZDS
+G 252260 ZN2
+B 253615 E x e c u t i o n
+I 253617 "If flag is..."
+I 253618 flag
+I 253624 " ERROR: Ch..."
